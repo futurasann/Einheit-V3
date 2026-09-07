@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EINHEIT | Database Verify</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#0A0B09; --surf:#12140F; --surf-2:#191C15;
+            --line:#262B22; --line-thick:#3A4234;
+            --ink:#F3F5EE; --dim:#8D9788;
+            --accent:#FFFFFF; --accent-ink:#0A0B09; --accent-2:#FF6A3D;
+            --r-xl:32px; --r-lg:24px; --r-md:16px; --r-sm:10px;
+            --max-w-desktop: 1120px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+        ::selection { background: var(--accent); color: var(--accent-ink); }
+
+        #curtain { position: fixed; inset: 0; background: var(--bg); z-index: 100000; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s var(--ease), visibility 0.8s var(--ease); }
+        #curtain.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        #curtain .mark { font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 6px; color: var(--dim); opacity: 0; animation: markFade 1.2s var(--ease) forwards; }
+        @keyframes markFade { 0% { opacity: 0; transform: scale(0.92); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.02); } }
+
+        /* --- NAVBAR START --- */
+        nav { display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; top: 18px; z-index: 9999; padding: 0 15px; }
+        .nav-container { width: 100%; max-width: var(--max-w-desktop); display: flex; justify-content: space-between; align-items: center; padding: 0 14px 0 30px; background: rgba(18,20,15,0.88); backdrop-filter: blur(18px); border: 2px solid var(--line-thick); border-radius: 100px; height: 74px; box-shadow: 6px 6px 0 rgba(255,255,255,0.10); transition: box-shadow 0.4s var(--ease), border-color 0.4s var(--ease), background 0.4s var(--ease); }
+        nav.scrolled .nav-container { box-shadow: 6px 6px 0 rgba(255,255,255,0.18); border-color: var(--accent); background: rgba(10,11,9,0.94); }
+        .nav-logo-img { height: 42px; width: auto; object-fit: contain; }
+
+        .desktop-nav { display: none; gap: 4px; align-items: center; }
+        .desktop-nav a { color: var(--dim); text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 100px; transition: 0.2s; }
+        .desktop-nav a:hover, .desktop-nav a.active { color: var(--ink); background: var(--surf-2); }
+
+        .hamburger-wrapper { position: relative; display: flex; align-items: center; }
+        .hamburger { cursor: pointer; display: flex; flex-direction: column; gap: 5px; background: var(--surf-2); padding: 12px; border-radius: 50%; border: 2px solid var(--line-thick); width: 46px; height: 46px; justify-content: center; align-items: center; }
+        .hamburger span { width: 16px; height: 2px; background: var(--ink); border-radius: 2px; }
+        .dropdown-menu { position: absolute; top: 62px; right: 0; width: 220px; background: var(--surf); border: 2px solid var(--line-thick); border-radius: 20px; padding: 10px; display: none; flex-direction: column; gap: 3px; box-shadow: 6px 6px 0 rgba(0,0,0,0.5); }
+        .dropdown-menu.active { display: flex; }
+        .dropdown-menu a { color: var(--dim); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 14px; border-radius: 12px; }
+        .dropdown-menu a:hover { background: var(--surf-2); color: var(--ink); }
+
+        @media (min-width: 900px) { .hamburger-wrapper { display: none; } .desktop-nav { display: flex; } }
+        @media (max-width: 768px) { .nav-container { height: 66px; } }
+        /* --- NAVBAR END --- */
+
+        .wrapper { width: 100%; max-width: 500px; margin: 0 auto; padding: 148px 20px 80px; min-height: 100svh; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .card { background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-xl); padding: 32px 22px; margin-bottom: 18px; box-shadow: 6px 6px 0 rgba(0,0,0,0.4); }
+        .page-tag { display: block; text-align: center; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--dim); letter-spacing: 2px; margin-bottom: 12px; }
+        h2 { font-weight: 800; font-size: 22px; text-align: center; margin:0; letter-spacing: -0.3px; }
+        .sub { color: var(--dim); font-size: 12.5px; text-align: center; margin: 8px 0 28px; }
+        .input-box { background: var(--bg); border: 2px solid var(--line-thick); border-radius: var(--r-md); padding: 20px; margin-bottom: 20px; font-family: 'JetBrains Mono'; font-size: 18px; color: var(--ink); width: 100%; text-align: center; outline: none; letter-spacing: 4px; transition: border-color 0.3s var(--ease); }
+        .input-box:focus { border-color: var(--accent); }
+        .btn-scan { background: var(--accent); color: var(--accent-ink); width: 100%; padding: 18px; border-radius: 100px; border: 2px solid var(--accent-ink); font-weight: 800; cursor: pointer; letter-spacing: 0.5px; font-size: 13px; box-shadow: 5px 5px 0 rgba(0,0,0,0.5); transition: 0.3s var(--ease); }
+        .btn-scan:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(0,0,0,0.5); background: #e6e6e6; }
+        .btn-scan:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+        #loading { display: none; text-align: center; padding: 30px 0; }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--line-thick); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        .animate { opacity: 0; animation: fadeUp 0.8s var(--ease) forwards; }
+        #result-section { display: none; }
+        .active-result { display: block !important; animation: fadeUp 0.7s var(--ease) forwards; }
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 24px; }
+        .brand-img { width: 74px; height: 74px; border-radius: var(--r-md); border: 2px solid var(--line-thick); object-fit: cover; }
+        .brand-name { font-size: 21px; font-weight: 800; margin: 0; }
+        .info-grid { border-top: 2px solid var(--line); padding-top: 20px; }
+        .label { font-size: 9.5px; color: var(--dim); letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        .value { font-size: 14px; font-weight: 500; margin-bottom: 18px; display: block; color: var(--ink); }
+        .status { color: var(--accent); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+        .error-msg { color: var(--accent-2); font-size: 12px; margin-bottom: 15px; display: none; text-align: center; font-family: 'JetBrains Mono'; }
+        @media (prefers-reduced-motion: reduce) { .animate, .active-result { animation: none !important; opacity: 1 !important; } }
+    </style>
+</head>
+<body>
+    <div id="curtain"><span class="mark">EINHEIT 单元</span></div>
+
+    <nav id="mainNav">
+        <div class="nav-container">
+            <a href="index.html"><img src="https://files.catbox.moe/iru1fz.png" class="nav-logo-img"></a>
+
+            <div class="desktop-nav">
+                <a href="index.html">Home</a>
+                <a href="gallery.html">Gallery</a>
+                <a href="rank.html">Rank</a>
+                <a href="news.html">News</a>
+                <a href="verify.html" class="active">Check ID Card</a>
+            </div>
+
+            <div class="hamburger-wrapper">
+                <div class="hamburger" onclick="toggleMenu()"><span></span><span></span></div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="index.html">Home</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="rank.html">Rank</a>
+                    <a href="news.html">News</a>
+                    <a href="verify.html">Check ID Card</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        <div id="input-card" class="card animate">
+            <span class="page-tag">◆ Member registry</span>
+            <h2>Check your ID card</h2>
+            <div class="sub">Check your ID card in here</div>
+            <input type="text" class="input-box" placeholder="EHT-XXXXX" id="memberID">
+            <div id="error-msg" class="error-msg">ID NOT FOUND :(</div>
+            <button class="btn-scan" id="btnAction" onclick="fetchMemberData()">Check ID card</button>
+            <div id="loading">
+                <div class="spinner"></div>
+                <div style="color:var(--accent); font-size:10px; font-weight:700; letter-spacing:2px; font-family:'JetBrains Mono';">SCANNING ID CARD...</div>
+            </div>
+        </div>
+
+        <div id="result-section">
+            <div class="card">
+                <div class="profile-header">
+                    <img src="" id="res-img" class="brand-img" onerror="this.src='https://files.catbox.moe/cmhaot.jpg'">
+                    <div>
+                        <p class="brand-name" id="res-brand">---</p>
+                        <span id="res-id" style="font-size:12px; color:var(--dim); font-family: 'JetBrains Mono';"></span>
+                    </div>
+                </div>
+                <div class="info-grid" id="info-content"></div>
+            </div>
+            <button class="btn-scan" style="background:transparent; border:2px solid var(--line-thick); color:var(--dim); font-size:12px; box-shadow:none;" onclick="location.reload()">Terminate Session</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() { document.getElementById('dropdownMenu').classList.toggle('active'); }
+        window.onclick = function(e) { if (!e.target.closest('.hamburger-wrapper')) document.getElementById('dropdownMenu').classList.remove('active'); }
+
+        window.addEventListener('load', () => setTimeout(() => document.getElementById('curtain').classList.add('done'), 300));
+        const navEl = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', window.scrollY > 30), { passive: true });
+
+        async function fetchMemberData() {
+            const idInput = document.getElementById('memberID').value.trim();
+            const id = idInput.toUpperCase();
+            if(!id) return;
+
+            const btn = document.getElementById('btnAction');
+            const loading = document.getElementById('loading');
+            const inputField = document.getElementById('memberID');
+            const errorMsg = document.getElementById('error-msg');
+
+            btn.style.display = 'none';
+            inputField.style.display = 'none';
+            errorMsg.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                const scriptURL = "https://script.google.com/macros/s/AKfycbz3BOaBDg0bsZ8czGV35K2JA0MJMK_GTto9KTA9i7WvyARc0lMy0f19_kKMcEhDyWfX/exec";
+                const response = await fetch(`${scriptURL}?id=${id}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const m = result.data;
+                    document.getElementById('res-brand').innerText = m.brand || "---";
+                    document.getElementById('res-img').src = m.logo || "https://files.catbox.moe/cmhaot.jpg";
+                    document.getElementById('res-id').innerText = "ID: " + m.id;
+
+                    const infoContainer = document.getElementById('info-content');
+                    infoContainer.innerHTML = `
+                        <span class="label">Owner</span>
+                        <span class="value">${m.owner || '-'}</span>
+                        <span class="label">Email</span>
+                        <span class="value">${m.email || m.wa || '-'}</span>
+                        <span class="label">Brand Focus</span>
+                        <span class="value">${m.focus || '-'}</span>
+                        <span class="label">Join Date</span>
+                        <span class="value">${m.join_date || m.date || '-'}</span>
+                        <span class="label">Brand Slogan</span>
+                        <span class="value" style="color:var(--accent)">"${m.slogan || '-'}"</span>
+                        <span class="label">Description</span>
+                        <span class="value">${m.desc || '-'}</span>
+                        <div class="status">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            VERIFIED EINHEIT MEMBER
+                        </div>
+                    `;
+                    document.getElementById('input-card').style.display = 'none';
+                    document.getElementById('result-section').classList.add('active-result');
+                } else { throw new Error(); }
+            } catch (e) {
+                loading.style.display = 'none';
+                btn.style.display = 'block';
+                inputField.style.display = 'block';
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

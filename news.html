@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EINHEIT | News</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#0A0B09; --surf:#12140F; --surf-2:#191C15;
+            --line:#262B22; --line-thick:#3A4234;
+            --ink:#F3F5EE; --dim:#8D9788;
+            --accent:#FFFFFF; --accent-ink:#0A0B09; --accent-2:#FF6A3D;
+            --r-xl:32px; --r-lg:24px; --r-md:16px; --r-sm:10px;
+            --max-w-desktop: 1120px; --max-w-content: 820px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+        ::selection { background: var(--accent); color: var(--accent-ink); }
+
+        #curtain { position: fixed; inset: 0; background: var(--bg); z-index: 100000; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s var(--ease), visibility 0.8s var(--ease); }
+        #curtain.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        #curtain .mark { font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 6px; color: var(--dim); opacity: 0; animation: markFade 1.2s var(--ease) forwards; }
+        @keyframes markFade { 0% { opacity: 0; transform: scale(0.92); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.02); } }
+
+        /* NAVBAR */
+        nav { display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; top: 18px; left: 0; z-index: 9999; padding: 0 15px; }
+        .nav-container { width: 100%; max-width: var(--max-w-desktop); display: flex; justify-content: space-between; align-items: center; padding: 0 14px 0 26px; background: rgba(18, 20, 15, 0.88); backdrop-filter: blur(18px); border: 2px solid var(--line-thick); border-radius: 100px; height: 74px; box-shadow: 6px 6px 0 rgba(255,255,255,0.10); transition: box-shadow 0.4s var(--ease), border-color 0.4s var(--ease), background 0.4s var(--ease); }
+        nav.scrolled .nav-container { box-shadow: 6px 6px 0 rgba(255,255,255,0.18); border-color: var(--accent); background: rgba(10,11,9,0.94); }
+        .nav-logo-img { height: 42px; width: auto; flex-shrink: 0; }
+        .desktop-menu { display: none; gap: 4px; }
+        .desktop-menu a { color: var(--dim); text-decoration: none; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 100px; transition: 0.2s; }
+        .desktop-menu a:hover, .desktop-menu a.active-link { color: var(--ink); background: var(--surf-2); }
+
+        .hamburger-wrapper { position: relative; display: flex; align-items: center; flex-shrink: 0; }
+        .hamburger { cursor: pointer; display: flex; flex-direction: column; gap: 5px; background: var(--surf-2); padding: 12px; border-radius: 50%; border: 2px solid var(--line-thick); width: 46px; height: 46px; justify-content: center; align-items: center; }
+        .hamburger span { width: 16px; height: 2px; background: var(--ink); border-radius: 2px; }
+        .dropdown-menu { position: absolute; top: 62px; right: 0; width: 220px; background: var(--surf); border: 2px solid var(--line-thick); border-radius: 20px; padding: 10px; display: none; flex-direction: column; gap: 3px; box-shadow: 6px 6px 0 rgba(0,0,0,0.5); }
+        .dropdown-menu.active { display: flex; }
+        .dropdown-menu a { color: var(--dim); text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 14px; border-radius: 12px; }
+        .dropdown-menu a:hover { background: var(--surf-2); color: var(--ink); }
+
+        /* WRAPPER */
+        .wrapper { width: 100%; max-width: var(--max-w-content); margin: 0 auto; padding: 148px 20px 40px; min-height: 100svh; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .page-tag { display: block; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-bottom: 10px; }
+        h2 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: -1.8px; margin-bottom: 36px; }
+
+        /* NEWS CARDS */
+        #newsContainer { flex: 1; }
+        .news-card {
+            background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-lg);
+            margin-bottom: 16px; display: flex; overflow: hidden; align-items: stretch;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.4); transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+        }
+        .news-card:hover { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 rgba(0,0,0,0.4); }
+        .news-img { width: 118px; min-width: 118px; object-fit: cover; border-right: 2px solid var(--line-thick); background: var(--surf-2); transition: transform 0.5s var(--ease); }
+        .news-card:hover .news-img { transform: scale(1.06); }
+        .news-content { padding: 16px 22px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .news-meta { font-size: 9.5px; color: var(--accent); font-weight: 700; font-family: 'JetBrains Mono'; letter-spacing: 1px; margin-bottom: 6px; }
+        .news-card h3 { margin: 0; font-size: 16.5px; font-weight: 700; line-height: 1.25; color: var(--ink); }
+        .news-card p { font-size: 12.5px; color: var(--dim); margin-top: 8px; line-height: 1.5; }
+
+        .skeleton { background: linear-gradient(90deg, var(--surf) 25%, var(--surf-2) 50%, var(--surf) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; }
+        @keyframes shimmer { to { background-position: -200% 0; } }
+        .sk-img { width: 118px; height: 118px; }
+        .sk-text { height: 14px; border-radius: 5px; margin-bottom: 8px; }
+        .sk-title { width: 70%; height: 18px; }
+        .sk-meta { width: 30%; height: 10px; }
+
+        footer { margin-top: 70px; padding: 40px 0; border-top: 2px solid var(--line); text-align: center; }
+        .copyright { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #4b544a; letter-spacing: 1.5px; }
+
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+        .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .nav-container { height: 66px; padding: 0 8px 0 20px; }
+            .news-card { flex-direction: column; }
+            .news-img { width: 100%; height: 170px; border-right: none; border-bottom: 2px solid var(--line-thick); }
+        }
+        @media (min-width: 992px) { .desktop-menu { display: flex; } .hamburger-wrapper { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .reveal { transition: none !important; opacity: 1 !important; transform: none !important; } }
+    </style>
+</head>
+<body>
+
+    <div id="curtain"><span class="mark">EINHEIT 单元</span></div>
+
+    <nav id="mainNav">
+        <div class="nav-container">
+            <a href="index.html"><img src="https://files.catbox.moe/iru1fz.png" class="nav-logo-img"></a>
+            <div class="desktop-menu">
+                <a href="index.html">Home</a>
+                <a href="gallery.html">Gallery</a>
+                <a href="rank.html">Rank</a>
+                <a href="news.html" class="active-link">News</a>
+                <a href="verify.html">Check ID Card</a>
+            </div>
+            <div class="hamburger-wrapper">
+                <div class="hamburger" onclick="toggleMenu()">
+                    <span></span><span></span>
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="index.html">Home</a>
+                    <a href="gallery.html">Gallery</a>
+                    <a href="rank.html">Rank</a>
+                    <a href="news.html">News</a>
+                    <a href="verify.html">Check ID Card</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        <span class="page-tag reveal">◆ Collective updates</span>
+        <h2 class="reveal">Einheit News.</h2>
+        <div id="newsContainer">
+            <div class="news-card sk-item">
+                <div class="sk-img skeleton"></div>
+                <div class="news-content">
+                    <div class="sk-meta skeleton"></div>
+                    <div class="sk-title skeleton"></div>
+                    <div class="sk-text skeleton"></div>
+                </div>
+            </div>
+        </div>
+        <footer class="reveal">
+            <div class="copyright">© 2026 EINHEIT COLLECTIVE. ALL RIGHTS RESERVED.</div>
+        </footer>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz3BOaBDg0bsZ8czGV35K2JA0MJMK_GTto9KTA9i7WvyARc0lMy0f19_kKMcEhDyWfX/exec';
+        let isFirstLoad = true;
+
+        function toggleMenu() { document.getElementById('dropdownMenu').classList.toggle('active'); }
+        window.onclick = function(event) { if (!event.target.closest('.hamburger-wrapper')) { const menu = document.getElementById('dropdownMenu'); if (menu && menu.classList.contains('active')) menu.classList.remove('active'); } }
+
+        window.addEventListener('load', () => setTimeout(() => document.getElementById('curtain').classList.add('done'), 300));
+        const navEl = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', window.scrollY > 30), { passive: true });
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) { entry.target.classList.add('in-view'); revealObserver.unobserve(entry.target); }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        function observeReveals(root = document) { root.querySelectorAll('.reveal:not(.in-view)').forEach(el => revealObserver.observe(el)); }
+        observeReveals();
+
+        function renderNews(data, cachedKeys = []) {
+            const container = document.getElementById('newsContainer');
+
+            if (isFirstLoad || container.querySelector('.sk-item')) {
+                container.innerHTML = '';
+            }
+
+            container.innerHTML = data.map((item, i) => {
+                const uniqueKey = item.title + item.date;
+                const shouldAnimate = isFirstLoad || !cachedKeys.includes(uniqueKey);
+                return `
+                    <div class="news-card ${shouldAnimate ? 'reveal' : ''}" style="${shouldAnimate ? `transition-delay: ${Math.min(i,8)*0.05}s` : ''}">
+                        <img src="${item.img}" class="news-img" loading="lazy" onerror="this.src='https://via.placeholder.com/110'">
+                        <div class="news-content">
+                            <span class="news-meta">${item.cat} • ${item.date}</span>
+                            <h3>${item.title}</h3>
+                            <p>${item.content}</p>
+                        </div>
+                    </div>`;
+            }).join('');
+            observeReveals(container);
+        }
+
+        async function fetchNews() {
+            const cachedRaw = localStorage.getItem('einheit_news_cache');
+            let cachedData = cachedRaw ? JSON.parse(cachedRaw) : [];
+
+            if (cachedData.length > 0) {
+                renderNews(cachedData, []);
+                isFirstLoad = false;
+            }
+
+            try {
+                const response = await fetch(`${scriptURL}?action=getNews&t=${new Date().getTime()}`);
+                const freshData = await response.json();
+
+                if (JSON.stringify(freshData) !== cachedRaw) {
+                    const cachedKeys = cachedData.map(item => item.title + item.date);
+                    renderNews(freshData, cachedKeys);
+                    localStorage.setItem('einheit_news_cache', JSON.stringify(freshData));
+                }
+            } catch (e) {
+                console.error("News Fetch Error:", e);
+            }
+        }
+
+        fetchNews();
+    </script>
+</body>
+</html>

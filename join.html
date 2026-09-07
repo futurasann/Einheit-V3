@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EINHEIT | Join Collective</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#0A0B09; --surf:#12140F; --surf-2:#191C15;
+            --line:#262B22; --line-thick:#3A4234;
+            --ink:#F3F5EE; --dim:#8D9788;
+            --accent:#FFFFFF; --accent-ink:#0A0B09; --accent-2:#FF6A3D;
+            --r-xl:32px; --r-lg:24px; --r-md:16px; --r-sm:10px;
+            --max-w-desktop: 1120px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+        ::selection { background: var(--accent); color: var(--accent-ink); }
+
+        #curtain { position: fixed; inset: 0; background: var(--bg); z-index: 100000; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s var(--ease), visibility 0.8s var(--ease); }
+        #curtain.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        #curtain .mark { font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 6px; color: var(--dim); opacity: 0; animation: markFade 1.2s var(--ease) forwards; }
+        @keyframes markFade { 0% { opacity: 0; transform: scale(0.92); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.02); } }
+
+        nav { display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; top: 18px; z-index: 9999; padding: 0 15px; }
+        .nav-container { width: 100%; max-width: var(--max-w-desktop); display: flex; justify-content: space-between; align-items: center; padding: 0 26px; background: rgba(18, 20, 15, 0.88); backdrop-filter: blur(18px); border: 2px solid var(--line-thick); border-radius: 100px; height: 74px; box-shadow: 6px 6px 0 rgba(255,255,255,0.10); transition: box-shadow 0.4s var(--ease), border-color 0.4s var(--ease), background 0.4s var(--ease); }
+        nav.scrolled .nav-container { box-shadow: 6px 6px 0 rgba(255,255,255,0.18); border-color: var(--accent); background: rgba(10,11,9,0.94); }
+        .nav-logo-img { height: 42px; width: auto; }
+
+        .wrapper { width: 100%; max-width: 620px; margin: 0 auto; padding: 148px 20px 80px; min-height: 100svh; min-height: 100vh; }
+
+        #main-ui { display: block; }
+        .stagger > * { opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s var(--ease) forwards; }
+
+        .page-tag { display: block; text-align: center; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-bottom: 12px; }
+        h2 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 10px; text-align: center; }
+        .sub-head { color: var(--dim); font-size: 14px; text-align: center; margin-bottom: 46px; line-height: 1.6; }
+
+        section { margin-bottom: 34px; border-top: 2px solid var(--line); padding-top: 28px; }
+        section h3 { font-size: 12px; color: var(--ink); letter-spacing: 1px; margin-bottom: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        section h3::before { content: ''; width: 8px; height: 8px; border-radius: 3px; background: var(--accent); display: block; }
+
+        .form-group { margin-bottom: 22px; text-align: left; }
+        label { display: block; font-size: 11.5px; color: var(--dim); margin-bottom: 8px; font-weight: 700; }
+
+        input, textarea {
+            width: 100%; background: var(--surf); border: 2px solid var(--line-thick);
+            border-radius: var(--r-md); padding: 15px 16px; color: var(--ink);
+            font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
+            transition: border-color 0.3s var(--ease), background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+        }
+        input:focus, textarea:focus { border-color: var(--accent); background: var(--surf-2); box-shadow: 0 0 0 4px rgba(255,255,255,0.10); }
+
+        .category-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .cat-card {
+            background: var(--surf); border: 2px solid var(--line-thick); padding: 15px 8px;
+            border-radius: var(--r-md); text-align: center; cursor: pointer; transition: 0.25s var(--ease);
+        }
+        .cat-card input { display: none; }
+        .cat-card span { font-size: 10.5px; font-weight: 700; color: var(--dim); }
+        .cat-card:has(input:checked) { border-color: var(--accent); background: rgba(255,255,255,0.08); }
+        .cat-card:has(input:checked) span { color: var(--accent); }
+
+        /* CHECKBOX */
+        .checkbox-container { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin-bottom: 18px; }
+        .checkbox-container input { display: none; }
+        .checkmark {
+            min-width: 20px; height: 20px; border: 2px solid var(--line-thick); border-radius: 6px;
+            background: var(--surf); position: relative; margin-top: 1px; transition: 0.2s var(--ease);
+        }
+        .checkbox-container input:checked ~ .checkmark { background: var(--accent); border-color: var(--accent); }
+        .checkbox-container input:checked ~ .checkmark:after {
+            content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 9px;
+            border: solid var(--accent-ink); border-width: 0 2px 2px 0; transform: rotate(45deg);
+        }
+        .checkbox-text { font-size: 12.5px; color: var(--dim); line-height: 1.5; }
+
+        .btn-apply {
+            width: 100%; background: var(--accent); color: var(--accent-ink); padding: 20px; border: 2px solid var(--accent-ink); border-radius: 100px;
+            font-weight: 800; letter-spacing: 0.3px; cursor: pointer; font-size: 13px;
+            display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 8px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.5); transition: 0.3s var(--ease);
+        }
+        .btn-apply:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(0,0,0,0.5); background: #e6e6e6; }
+        .btn-apply:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+        .btn-apply:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        #formError {
+            color: var(--accent-2); font-size: 12.5px; font-weight: 600; text-align: center;
+            margin-top: 16px; display: none; line-height: 1.6; border: 2px dashed var(--accent-2);
+            border-radius: var(--r-md); padding: 12px 16px; background: rgba(255,106,61,0.08);
+        }
+
+        #success-ui { display: none; text-align: center; padding: 90px 20px; flex-direction: column; align-items: center; justify-content: center; }
+        .check-icon {
+            width: 84px; height: 84px; background: var(--accent); border-radius: 50%; border: 2px solid var(--accent-ink);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 30px;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.5);
+        }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blurOut { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(10px); transform: translateY(-20px); } }
+        @keyframes blurIn { from { opacity: 0; filter: blur(10px); } to { opacity: 1; filter: blur(0); } }
+        .loader { width: 16px; height: 16px; border: 2px solid var(--accent-ink); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .stagger > * { animation: none !important; opacity: 1 !important; } }
+    </style>
+</head>
+<body>
+
+    <div id="curtain"><span class="mark">EINHEIT 单元</span></div>
+
+    <nav id="mainNav">
+        <div class="nav-container">
+            <a href="index.html"><img src="https://files.catbox.moe/iru1fz.png" class="nav-logo-img"></a>
+            <a href="index.html" style="color: var(--dim); text-decoration: none; font-size: 12px; font-weight: 700;">← Back</a>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        <div id="main-ui" class="stagger">
+            <span class="page-tag">◆ Registration</span>
+            <h2>Join the collective.</h2>
+            <p class="sub-head">Please complete the form below to submit your registration and become part of the EINHEIT collective.</p>
+
+            <form id="joinForm">
+                <section>
+                    <h3>Owner & Contact</h3>
+                    <div class="form-group">
+                        <label>Owner Name</label>
+                        <input type="text" id="owner" name="owner_name" placeholder="Enter owner name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Brand Identity</h3>
+                    <div class="form-group">
+                        <label>Brand Name</label>
+                        <input type="text" id="brand" name="brand_name" placeholder="Enter your brand name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Focus</label>
+                        <input type="text" id="focus" name="brand_focus" placeholder="e.g. Technology, Design, Media, Fictional Brand" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Slogan</label>
+                        <input type="text" id="slogan" name="slogan" placeholder="Enter a short brand slogan" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="desc" name="brand_desc" rows="4" placeholder="Briefly describe your brand" required></textarea>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Presence</h3>
+                    <div class="form-group">
+                        <label>Logo URL (Direct Link)</label>
+                        <input type="url" id="logo" name="logo_url" placeholder="Paste your logo image URL" required>
+                    </div>
+                    <div class="form-group">
+                        <label>TikTok</label>
+                        <input type="text" id="tiktok" name="tiktok" placeholder="TikTok username or profile link" required>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Details</h3>
+                    <div class="form-group">
+                        <label>Why do you want to join EINHEIT?</label>
+                        <textarea id="why" name="why_join" rows="2" placeholder="Write your reason for joining EINHEIT here…" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Brand Type</label>
+                        <div class="category-grid">
+                            <label class="cat-card"><input type="radio" name="brand_type" value="Primary" required><span>Primary Brand</span></label>
+                            <label class="cat-card"><input type="radio" name="brand_type" value="Sub"><span>Sub-Brand</span></label>
+                            <label class="cat-card"><input type="radio" name="brand_type" value="Partner"><span>Partner Brand</span></label>
+                        </div>
+                    </div>
+                </section>
+
+                <section style="border: none;">
+                    <label class="checkbox-container">
+                        <input type="checkbox" required>
+                        <span class="checkmark"></span>
+                        <span class="checkbox-text">I confirm that all provided information is accurate.</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" required>
+                        <span class="checkmark"></span>
+                        <span class="checkbox-text">I agree to follow the collective's guidelines and values.</span>
+                    </label>
+
+                    <button type="submit" class="btn-apply" id="submitBtn">
+                        <span id="btnText">Submit Application</span>
+                    </button>
+                    <p id="formError"></p>
+                </section>
+            </form>
+        </div>
+
+        <div id="success-ui">
+            <div class="check-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0A0B09" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="width:38px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h2>Received.</h2>
+            <p style="color:var(--dim); font-size:14px; margin-bottom:40px; line-height:1.6;">Thank you for submitting your registration. Your application is currently under review. If approved, you will be contacted via email for further information.</p>
+            <a href="index.html" style="color:var(--ink); text-decoration:none; font-size:12px; font-weight:800; border:2px solid var(--line-thick); padding:17px 42px; border-radius:100px;">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz3BOaBDg0bsZ8czGV35K2JA0MJMK_GTto9KTA9i7WvyARc0lMy0f19_kKMcEhDyWfX/exec';
+        const form = document.getElementById('joinForm');
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const mainUI = document.getElementById('main-ui');
+        const successUI = document.getElementById('success-ui');
+        const formError = document.getElementById('formError');
+
+        window.addEventListener('load', () => setTimeout(() => document.getElementById('curtain').classList.add('done'), 300));
+        const navEl = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', window.scrollY > 30), { passive: true });
+
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loader"></span> PROCESSING';
+            formError.style.display = 'none';
+
+            const brandType = document.querySelector('input[name="brand_type"]:checked').value;
+
+            const payload = {
+                action: 'register',
+                owner: document.getElementById('owner').value,
+                wa: document.getElementById('email').value, // field WA dipakai untuk simpan email
+                brand: document.getElementById('brand').value,
+                focus: document.getElementById('focus').value,
+                slogan: document.getElementById('slogan').value,
+                desc: document.getElementById('desc').value,
+                logo: document.getElementById('logo').value,
+                tiktok: document.getElementById('tiktok').value,
+                why: document.getElementById('why').value,
+                type: brandType
+            };
+
+            try {
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result && result.success) {
+                    mainUI.style.animation = 'blurOut 0.6s ease-in forwards';
+                    setTimeout(() => {
+                        mainUI.style.display = 'none';
+                        successUI.style.display = 'flex';
+                        successUI.style.animation = 'blurIn 0.8s ease-out forwards';
+                    }, 600);
+                } else {
+                    const baseMsg = (result && (result.message || result.error)) || 'Pendaftaran gagal, coba lagi.';
+                    const debugMsg = result && result.debug ? ' [' + JSON.stringify(result.debug) + ']' : '';
+                    throw new Error(baseMsg + debugMsg);
+                }
+            } catch (error) {
+                console.error('Error!', error.message);
+                formError.textContent = 'Gagal mengirim: ' + error.message;
+                formError.style.display = 'block';
+                btn.disabled = false;
+                btnText.innerHTML = 'RETRY';
+            }
+        });
+    </script>
+</body>
+</html>

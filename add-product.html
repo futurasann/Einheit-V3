@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EINHEIT | Add Gear Collective</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:#0A0B09; --surf:#12140F; --surf-2:#191C15;
+            --line:#262B22; --line-thick:#3A4234;
+            --ink:#F3F5EE; --dim:#8D9788;
+            --accent:#FFFFFF; --accent-ink:#0A0B09; --accent-2:#FF6A3D;
+            --r-xl:32px; --r-lg:24px; --r-md:16px; --r-sm:10px;
+            --max-w-desktop: 1120px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+        ::selection { background: var(--accent); color: var(--accent-ink); }
+
+        #curtain { position: fixed; inset: 0; background: var(--bg); z-index: 100000; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s var(--ease), visibility 0.8s var(--ease); }
+        #curtain.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        #curtain .mark { font-family: 'JetBrains Mono'; font-size: 11px; letter-spacing: 6px; color: var(--dim); opacity: 0; animation: markFade 1.2s var(--ease) forwards; }
+        @keyframes markFade { 0% { opacity: 0; transform: scale(0.92); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.02); } }
+
+        /* GLOBAL LOADER */
+        #global-loader {
+            position: fixed; inset: 0; background: rgba(10,11,9,0.92); backdrop-filter: blur(15px);
+            z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid var(--line-thick);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .load-text { color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 2px; font-family: 'JetBrains Mono'; }
+
+        /* NAVIGATION */
+        nav { display: flex; justify-content: center; align-items: center; position: fixed; width: 100%; top: 18px; z-index: 9999; padding: 0 15px; }
+        .nav-container { width: 100%; max-width: var(--max-w-desktop); display: flex; justify-content: space-between; align-items: center; padding: 0 26px; background: rgba(18, 20, 15, 0.88); backdrop-filter: blur(18px); border: 2px solid var(--line-thick); border-radius: 100px; height: 74px; box-shadow: 6px 6px 0 rgba(255,255,255,0.10); transition: box-shadow 0.4s var(--ease), border-color 0.4s var(--ease), background 0.4s var(--ease); }
+        nav.scrolled .nav-container { box-shadow: 6px 6px 0 rgba(255,255,255,0.18); border-color: var(--accent); background: rgba(10,11,9,0.94); }
+        .nav-logo-img { height: 42px; width: auto; }
+
+        /* MAIN WRAPPER */
+        .wrapper { width: 100%; max-width: 600px; margin: 0 auto; padding: 148px 20px 80px; min-height: 100svh; min-height: 100vh; }
+
+        .stagger > * { opacity: 0; transform: translateY(20px); animation: fadeUp 0.8s var(--ease) forwards; }
+
+        .page-tag { display: block; text-align: center; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-bottom: 12px; }
+        h2 { font-size: 32px; font-weight: 800; letter-spacing: -1.2px; margin-bottom: 10px; text-align: center; }
+        .sub-head { color: var(--dim); font-size: 13.5px; text-align: center; margin-bottom: 46px; line-height: 1.6; }
+
+        /* DYNAMIC GREETING */
+        #personal-greet {
+            background: var(--surf); border: 2px solid var(--accent); padding: 16px 24px; border-radius: 100px;
+            color: var(--ink); font-size: 12px; font-weight: 700; text-align: center;
+            margin-bottom: 32px; display: none;
+        }
+
+        /* SECTIONS */
+        section { margin-bottom: 40px; border-top: 2px solid var(--line); padding-top: 32px; }
+        section h3 { font-size: 12px; color: var(--ink); letter-spacing: 1px; margin-bottom: 26px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        section h3::before { content: ''; width: 8px; height: 8px; border-radius: 3px; background: var(--accent); display: block; }
+
+        .form-group { margin-bottom: 22px; }
+        label { display: block; font-size: 11.5px; color: var(--dim); margin-bottom: 9px; font-weight: 700; }
+
+        input {
+            width: 100%; background: var(--surf); border: 2px solid var(--line-thick);
+            border-radius: var(--r-md); padding: 16px; color: var(--ink); font-family: 'Inter', sans-serif; font-size: 14px; outline: none;
+            transition: border-color 0.3s var(--ease), background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+        }
+        input:focus { border-color: var(--accent); background: var(--surf-2); box-shadow: 0 0 0 4px rgba(255,255,255,0.10); }
+
+        /* LIVE PREVIEW CARD */
+        .preview-box {
+            background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-xl);
+            overflow: hidden; max-width: 290px; margin: 0 auto 32px; box-shadow: 7px 7px 0 rgba(0,0,0,0.4);
+            transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+        }
+        .preview-box:hover { transform: translate(-3px,-3px); box-shadow: 10px 10px 0 rgba(0,0,0,0.4); }
+        .img-prev { width: 100%; aspect-ratio: 1/1; background: var(--surf-2); display: flex; align-items: center; justify-content: center; position: relative; border-bottom: 2px solid var(--line-thick); }
+        .img-prev img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .info-prev { padding: 26px; text-align: center; }
+        .info-prev h4 { margin: 0; font-size: 14px; font-weight: 700; }
+        .info-prev p { margin: 10px 0 0; font-size: 10px; color: var(--dim); font-family: 'JetBrains Mono'; letter-spacing: 0.5px; }
+
+        /* BUTTON & ERROR */
+        #error-msg { color: var(--accent-2); font-size: 11px; font-weight: 700; margin-top: 14px; text-align: center; display: none; }
+        .btn-apply {
+            width: 100%; background: var(--accent); color: var(--accent-ink); padding: 20px; border: 2px solid var(--accent-ink); border-radius: 100px;
+            font-weight: 800; letter-spacing: 0.5px; cursor: pointer; font-size: 13px;
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.5); transition: 0.3s var(--ease);
+        }
+        .btn-apply:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(0,0,0,0.5); background: #e6e6e6; }
+        .btn-apply:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+
+        /* SUCCESS STATE */
+        #state-success {
+            display: none; text-align: center; flex-direction: column;
+            align-items: center; justify-content: center; min-height: 55vh;
+        }
+        .check-icon {
+            width: 88px; height: 88px; background: var(--accent); border-radius: 50%; border: 2px solid var(--accent-ink);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 32px;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.5);
+        }
+        .check-icon svg { width: 42px; height: 42px; stroke: var(--accent-ink); stroke-width: 4px; display: block; }
+
+        #state-form { display: none; }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blurOut { from { opacity: 1; filter: blur(0); } to { opacity: 0; filter: blur(15px); transform: translateY(-30px); } }
+        @keyframes blurIn { from { opacity: 0; filter: blur(15px); } to { opacity: 1; filter: blur(0); } }
+        @media (prefers-reduced-motion: reduce) { .stagger > *, #state-login, #state-form, #state-success { animation: none !important; opacity: 1 !important; } }
+    </style>
+</head>
+<body>
+
+    <div id="curtain"><span class="mark">EINHEIT 单元</span></div>
+
+    <div id="global-loader">
+        <div class="spinner"></div>
+        <div class="load-text" id="load-status">SCANNING DATA...</div>
+    </div>
+
+    <nav id="mainNav">
+        <div class="nav-container">
+            <a href="index.html"><img src="https://files.catbox.moe/iru1fz.png" class="nav-logo-img"></a>
+            <a href="gallery.html" style="color: var(--dim); text-decoration: none; font-size: 12px; font-weight: 700;">← Back</a>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+
+        <div id="state-login" class="stagger">
+            <span class="page-tag">◆ Access control</span>
+            <h2>Verify access.</h2>
+            <p class="sub-head">Input member identification to unlock collective asset registry.</p>
+            <section style="border:none">
+                <div class="form-group">
+                    <label>Member Serial ID</label>
+                    <input type="text" id="memberID" placeholder="EHT-XXXXX" oninput="document.getElementById('error-msg').style.display='none'">
+                    <p id="error-msg">ID Not Found :(</p>
+                </div>
+                <button class="btn-apply" onclick="handleLogin()">Authorize Access</button>
+            </section>
+        </div>
+
+        <div id="state-form">
+            <span class="page-tag">◆ Asset sync</span>
+            <h2>Add asset.</h2>
+            <p id="personal-greet"></p>
+            <p class="sub-head">Collective hardware and software synchronization module.</p>
+
+            <form id="productForm">
+                <section>
+                    <h3>Identification</h3>
+                    <div class="form-group">
+                        <label>Asset Model Name</label>
+                        <input type="text" id="pName" placeholder="e.g. Xperia 1 V" required oninput="syncPreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Serial ID</label>
+                        <input type="text" id="pSerial" placeholder="e.g. EH-01" required oninput="syncPreview()">
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Resource Link</h3>
+                    <div class="form-group">
+                        <label>Image URL (Direct Link)</label>
+                        <input type="url" id="pImg" placeholder="https://files.catbox.moe/..." required oninput="syncPreview()">
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Registry Preview</h3>
+                    <div class="preview-box">
+                        <div class="img-prev" id="previewContainer">
+                            <span id="noDataTxt" style="font-size:9.5px; color:#3A4234; font-family:'JetBrains Mono'; font-weight:700; letter-spacing:1.5px;">NO RESOURCE DATA</span>
+                            <img src="" id="imgPrev">
+                        </div>
+                        <div class="info-prev">
+                            <h4 id="namePrev">PRODUCT NAME</h4>
+                            <p id="serialPrev">SERIAL: EH-XXXX</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-apply" id="submitBtn">Publish Your Product</button>
+                </section>
+            </form>
+        </div>
+
+        <div id="state-success">
+            <div class="check-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h2>Deployed.</h2>
+            <p style="color:var(--dim); font-size:14px; margin-bottom:40px; max-width: 420px; line-height: 1.7;">
+                Synchronization successful. Your asset has been written to the collective database and is now pending public registry update.
+            </p>
+            <a href="gallery.html" style="color:var(--ink); text-decoration:none; border:2px solid var(--line-thick); padding:18px 46px; border-radius:100px; font-weight:800; font-size:12px;">
+                View Gallery
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbz3BOaBDg0bsZ8czGV35K2JA0MJMK_GTto9KTA9i7WvyARc0lMy0f19_kKMcEhDyWfX/exec';
+
+        window.addEventListener('load', () => setTimeout(() => document.getElementById('curtain').classList.add('done'), 300));
+        const navEl = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => navEl.classList.toggle('scrolled', window.scrollY > 30), { passive: true });
+
+        const loader = document.getElementById('global-loader');
+        const loadStatus = document.getElementById('load-status');
+
+        function toggleLoader(show, text = "SCANNING DATA...") {
+            loadStatus.innerText = text;
+            loader.style.display = show ? 'flex' : 'none';
+        }
+
+        async function handleLogin() {
+            const idInput = document.getElementById('memberID').value.trim();
+            const err = document.getElementById('error-msg');
+            if (!idInput) return;
+
+            toggleLoader(true, "VERIFYING MEMBER ID...");
+
+            try {
+                const response = await fetch(`${scriptURL}?action=verify&id=${encodeURIComponent(idInput)}`);
+                const result = await response.json();
+                toggleLoader(false);
+
+                if (result.success) {
+                    document.getElementById('personal-greet').innerText = `Hai ${result.data.owner}, proceed with asset registration.`;
+                    document.getElementById('personal-greet').style.display = 'block';
+                    transition('state-login', 'state-form');
+                } else {
+                    err.style.display = 'block';
+                    err.innerText = "Member ID Not Found!";
+                }
+            } catch (e) {
+                toggleLoader(false);
+                alert("Connection Error. Please check your internet.");
+            }
+        }
+
+        function syncPreview() {
+            document.getElementById('namePrev').innerText = document.getElementById('pName').value || "PRODUCT NAME";
+            document.getElementById('serialPrev').innerText = "SERIAL: " + (document.getElementById('pSerial').value || "EH-XXXX");
+            const url = document.getElementById('pImg').value;
+            const img = document.getElementById('imgPrev');
+            const txt = document.getElementById('noDataTxt');
+
+            if (url && url.includes('http')) {
+                img.src = url;
+                img.onload = () => { img.style.display = 'block'; txt.style.display = 'none'; };
+                img.onerror = () => { img.style.display = 'none'; txt.style.display = 'block'; };
+            } else {
+                img.style.display = 'none'; txt.style.display = 'block';
+            }
+        }
+
+        function transition(from, to) {
+            const f = document.getElementById(from);
+            const t = document.getElementById(to);
+            f.style.animation = 'blurOut 0.6s ease-in forwards';
+            setTimeout(() => {
+                f.style.display = 'none';
+                t.style.display = (to === 'state-success') ? 'flex' : 'block';
+                t.style.animation = 'blurIn 0.8s ease-out forwards';
+            }, 600);
+        }
+
+        document.getElementById('productForm').onsubmit = async (e) => {
+            e.preventDefault();
+            toggleLoader(true, "DEPLOYING ASSET...");
+
+            const formData = new URLSearchParams();
+            formData.append('action', 'submitGallery');
+            formData.append('brand', document.getElementById('pName').value);
+            formData.append('product', document.getElementById('pSerial').value);
+            formData.append('image', document.getElementById('pImg').value);
+
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+
+                setTimeout(() => {
+                    toggleLoader(false);
+                    transition('state-form', 'state-success');
+                }, 1500);
+
+            } catch (err) {
+                toggleLoader(false);
+                alert("Fatal Error: Could not reach database.");
+            }
+        };
+    </script>
+</body>
+</html>

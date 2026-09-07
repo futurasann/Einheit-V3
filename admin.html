@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EINHEIT | Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg:#0A0B09; --surf:#12140F; --surf-2:#191C15; --surf-3:#1F2419;
+        --line:#262B22; --line-thick:#3A4234;
+        --ink:#F3F5EE; --dim:#8D9788;
+        --accent:#FFFFFF; --accent-ink:#0A0B09; --accent-2:#FF6A3D; --accent-3:#4DA3FF;
+        --r-xl:32px; --r-lg:24px; --r-md:16px; --r-sm:10px;
+    }
+    * { box-sizing: border-box; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+    ::selection { background: var(--accent); color: var(--accent-ink); }
+    button { font-family: inherit; cursor: pointer; }
+    input, textarea, select { font-family: 'Inter', sans-serif; }
+
+    /* ============ LOGIN ============ */
+    #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { width: 100%; max-width: 380px; background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-xl); padding: 40px 30px; box-shadow: 8px 8px 0 var(--accent); }
+    .login-tag { display: block; text-align: center; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-bottom: 14px; }
+    .login-card h2 { text-align: center; font-size: 26px; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .login-sub { text-align: center; color: var(--dim); font-size: 13px; margin-bottom: 30px; }
+    .f-group { margin-bottom: 18px; text-align: left; }
+    .f-group label { display: block; font-size: 11px; color: var(--dim); font-weight: 700; margin-bottom: 8px; }
+    .f-group input { width: 100%; background: var(--bg); border: 2px solid var(--line-thick); border-radius: var(--r-md); padding: 14px 16px; color: var(--ink); font-size: 14px; outline: none; }
+    .f-group input:focus { border-color: var(--accent); }
+    .btn-login { width: 100%; background: var(--accent); color: var(--accent-ink); border: 2px solid var(--accent-ink); border-radius: 100px; padding: 16px; font-weight: 800; font-size: 13px; letter-spacing: 0.4px; box-shadow: 5px 5px 0 rgba(0,0,0,0.5); margin-top: 8px; }
+    .btn-login:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(0,0,0,0.5); background: #e6e6e6; }
+    .btn-login:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.5); }
+    #loginError { color: var(--accent-2); font-size: 12px; text-align: center; margin-top: 16px; display: none; font-weight: 600; }
+
+    /* ============ APP SHELL ============ */
+    #adminApp { display: none; min-height: 100vh; }
+    .shell { display: flex; min-height: 100vh; }
+
+    .sidebar {
+        width: 250px; flex-shrink: 0; background: var(--surf); border-right: 2px solid var(--line-thick);
+        display: flex; flex-direction: column; padding: 24px 16px; position: fixed; top: 0; bottom: 0; left: 0;
+        transform: translateX(-100%); transition: transform 0.3s ease; z-index: 500;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .side-logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px; border-bottom: 2px solid var(--line); margin-bottom: 20px; }
+    .side-logo img { height: 34px; }
+    .side-logo span { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--dim); letter-spacing: 1.5px; }
+
+    .nav-item {
+        display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: var(--r-md);
+        color: var(--dim); text-decoration: none; font-size: 13.5px; font-weight: 700; margin-bottom: 4px; border: 2px solid transparent;
+        background: none; width: 100%; text-align: left;
+    }
+    .nav-item .ic { width: 18px; text-align: center; font-size: 15px; }
+    .nav-item:hover { background: var(--surf-2); color: var(--ink); }
+    .nav-item.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent-ink); }
+
+    .side-footer { margin-top: auto; padding-top: 16px; border-top: 2px solid var(--line); }
+    .btn-logout { width: 100%; background: transparent; border: 2px solid var(--line-thick); color: var(--dim); border-radius: 100px; padding: 12px; font-weight: 700; font-size: 12px; }
+    .btn-logout:hover { color: var(--accent-2); border-color: var(--accent-2); }
+
+    .main { flex: 1; min-width: 0; }
+    .topbar { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 2px solid var(--line-thick); background: var(--surf); position: sticky; top: 0; z-index: 400; }
+    .burger { background: var(--surf-2); border: 2px solid var(--line-thick); border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .burger span { display: block; width: 16px; height: 2px; background: var(--ink); position: relative; }
+    .burger span::before, .burger span::after { content: ''; position: absolute; width: 16px; height: 2px; background: var(--ink); left: 0; }
+    .burger span::before { top: -5px; } .burger span::after { top: 5px; }
+    .topbar h1 { font-size: 17px; letter-spacing: -0.3px; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 450; }
+    .sidebar-overlay.show { display: block; }
+
+    .content { padding: 24px 20px 70px; max-width: 1100px; margin: 0 auto; }
+    .view { display: none; animation: fadeUp 0.4s ease; }
+    .view.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-tag { display: block; font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--dim); letter-spacing: 2px; margin-bottom: 8px; }
+    .page-title { font-size: 24px; letter-spacing: -0.6px; margin-bottom: 24px; }
+
+    /* ============ SHARED COMPONENTS ============ */
+    .card { background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-lg); box-shadow: 5px 5px 0 rgba(0,0,0,0.4); padding: 20px; }
+
+    .banner { border: 2px solid var(--accent-2); background: rgba(255,106,61,0.08); color: var(--ink); border-radius: var(--r-md); padding: 14px 18px; margin-bottom: 20px; font-size: 12.5px; line-height: 1.6; }
+    .banner b { color: var(--accent-2); }
+    .banner code { background: var(--surf-2); padding: 2px 6px; border-radius: 6px; font-family: 'JetBrains Mono'; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 28px; }
+    .stat-card { background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-lg); padding: 20px; box-shadow: 5px 5px 0 rgba(0,0,0,0.4); }
+    .stat-card .num { font-family: 'Space Grotesk'; font-size: 30px; font-weight: 800; color: var(--accent); }
+    .stat-card .lbl { font-size: 11px; color: var(--dim); font-weight: 700; margin-top: 4px; }
+
+    .list-item { background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-lg); padding: 16px; margin-bottom: 12px; box-shadow: 5px 5px 0 rgba(0,0,0,0.4); }
+    .li-row { display: flex; align-items: center; gap: 14px; }
+    .li-avatar { width: 50px; height: 50px; border-radius: var(--r-sm); object-fit: cover; border: 2px solid var(--line-thick); background: var(--surf-2); flex-shrink: 0; }
+    .li-main { flex: 1; min-width: 0; }
+    .li-title { font-family: 'Space Grotesk'; font-size: 14.5px; font-weight: 700; }
+    .li-sub { font-size: 11px; color: var(--dim); font-family: 'JetBrains Mono'; margin-top: 3px; }
+
+    .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 9.5px; font-weight: 800; padding: 4px 10px; border-radius: 100px; font-family: 'JetBrains Mono'; letter-spacing: 0.5px; border: 1.5px solid; }
+    .badge.pending { color: var(--accent-2); border-color: var(--accent-2); background: rgba(255,106,61,0.1); }
+    .badge.approved { color: var(--accent); border-color: var(--accent); background: rgba(255,255,255,0.1); }
+
+    .btn { border-radius: 100px; font-weight: 800; font-size: 11px; padding: 10px 16px; border: 2px solid; letter-spacing: 0.2px; }
+    .btn-accent { background: var(--accent); color: var(--accent-ink); border-color: var(--accent-ink); }
+    .btn-accent:hover { background: #e6e6e6; }
+    .btn-outline { background: transparent; color: var(--ink); border-color: var(--line-thick); }
+    .btn-outline:hover { border-color: var(--dim); }
+    .btn-danger { background: transparent; color: var(--accent-2); border-color: var(--accent-2); }
+    .btn-danger:hover { background: rgba(255,106,61,0.1); }
+    .btn-sm { padding: 8px 12px; font-size: 10px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+    .stat-ctrl { display: flex; align-items: center; gap: 8px; background: var(--surf-2); border: 2px solid var(--line-thick); border-radius: 100px; padding: 6px 6px 6px 14px; }
+    .stat-ctrl .lbl2 { font-size: 9.5px; color: var(--dim); font-weight: 800; font-family: 'JetBrains Mono'; width: 44px; }
+    .stat-ctrl .val { font-family: 'JetBrains Mono'; font-weight: 700; font-size: 13px; color: var(--accent); min-width: 28px; text-align: center; }
+    .stat-ctrl button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-thick); background: var(--surf); color: var(--ink); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; line-height: 1; }
+    .stat-ctrl button:hover { border-color: var(--accent); color: var(--accent); }
+    .stat-ctrls { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: var(--dim); font-size: 13px; }
+    .error-state { text-align: center; padding: 40px 20px; color: var(--accent-2); font-size: 13px; font-weight: 600; border: 2px dashed var(--accent-2); border-radius: var(--r-lg); background: rgba(255,106,61,0.06); }
+    .loading-dot { font-family: 'JetBrains Mono'; color: var(--dim); font-size: 12px; text-align: center; padding: 30px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 11px; color: var(--dim); font-weight: 700; margin-bottom: 8px; }
+    .form-group input, .form-group textarea { width: 100%; background: var(--bg); border: 2px solid var(--line-thick); border-radius: var(--r-md); padding: 13px 15px; color: var(--ink); font-size: 13.5px; outline: none; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--surf); border: 2px solid var(--accent); color: var(--ink); padding: 14px 22px; border-radius: 100px; font-size: 12.5px; font-weight: 700; box-shadow: 5px 5px 0 rgba(0,0,0,0.5); z-index: 9999; transition: transform 0.3s ease; max-width: 90vw; text-align: center; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.err { border-color: var(--accent-2); }
+
+    /* ID CARD VIEW */
+    .idcard-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    #cardCanvas { width: 100%; max-width: 520px; border-radius: var(--r-lg); box-shadow: 7px 7px 0 var(--accent); background: #000; }
+    .select-wrap select { width: 100%; background: var(--surf); border: 2px solid var(--line-thick); border-radius: var(--r-md); padding: 14px 16px; color: var(--ink); font-size: 14px; outline: none; }
+    .idcard-note { background: var(--surf-2); border: 2px dashed var(--line-thick); border-radius: var(--r-md); padding: 14px 16px; font-size: 11.5px; color: var(--dim); line-height: 1.6; max-width: 520px; }
+
+    @media (min-width: 900px) {
+        .sidebar { position: sticky; transform: translateX(0); }
+        .burger { display: none; }
+        .sidebar-overlay { display: none !important; }
+        .content { padding: 32px 40px 70px; }
+    }
+</style>
+</head>
+<body>
+
+    <!-- ================= LOGIN ================= -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <span class="login-tag">◆ Restricted access</span>
+            <h2>Admin Login</h2>
+            <p class="login-sub">Masuk untuk mengelola collective.</p>
+            <div class="f-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" placeholder="username" autocomplete="off">
+            </div>
+            <div class="f-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="••••••••" autocomplete="off">
+            </div>
+            <button class="btn-login" onclick="handleLogin()">Masuk</button>
+            <p id="loginError">Username atau password salah.</p>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN APP ================= -->
+    <div id="adminApp">
+        <div class="shell">
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+            <aside class="sidebar" id="sidebar">
+                <div class="side-logo">
+                    <img src="https://files.catbox.moe/iru1fz.png">
+                    <span>ADMIN&nbsp;PANEL</span>
+                </div>
+                <nav>
+                    <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><span class="ic">◆</span> Dashboard</button>
+                    <button class="nav-item" data-view="members" onclick="showView('members')"><span class="ic">☰</span> Kelola Member</button>
+                    <button class="nav-item" data-view="applications" onclick="showView('applications')"><span class="ic">✦</span> Pendaftar Baru</button>
+                    <button class="nav-item" data-view="gallery" onclick="showView('gallery')"><span class="ic">▦</span> Kelola Gallery</button>
+                    <button class="nav-item" data-view="news" onclick="showView('news')"><span class="ic">✎</span> Kelola Berita</button>
+                    <button class="nav-item" data-view="idcard" onclick="showView('idcard')"><span class="ic">▣</span> Generate ID Card</button>
+                </nav>
+                <div class="side-footer">
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                </div>
+            </aside>
+
+            <div class="main">
+                <header class="topbar">
+                    <div class="burger" onclick="toggleSidebar()"><span></span></div>
+                    <h1 id="topbarTitle">Dashboard</h1>
+                </header>
+
+                <div class="content">
+
+                    <div class="banner" id="tokenBanner" style="display:none;"></div>
+
+                    <!-- DASHBOARD -->
+                    <section class="view active" id="view-dashboard">
+                        <span class="page-tag">◆ Ringkasan</span>
+                        <h2 class="page-title">Overview.</h2>
+                        <div class="stat-grid" id="dashStats">
+                            <div class="loading-dot">Memuat data...</div>
+                        </div>
+                    </section>
+
+                    <!-- MEMBERS -->
+                    <section class="view" id="view-members">
+                        <span class="page-tag">◆ Registry</span>
+                        <h2 class="page-title">Kelola Member.</h2>
+                        <div id="membersList"><div class="loading-dot">Memuat data...</div></div>
+                    </section>
+
+                    <!-- APPLICATIONS -->
+                    <section class="view" id="view-applications">
+                        <span class="page-tag">◆ Menunggu review</span>
+                        <h2 class="page-title">Pendaftar Baru.</h2>
+                        <div id="applicationsList"><div class="loading-dot">Memuat data...</div></div>
+                    </section>
+
+                    <!-- GALLERY -->
+                    <section class="view" id="view-gallery">
+                        <span class="page-tag">◆ Product registry</span>
+                        <h2 class="page-title">Kelola Gallery.</h2>
+                        <div id="galleryList"><div class="loading-dot">Memuat data...</div></div>
+                    </section>
+
+                    <!-- NEWS -->
+                    <section class="view" id="view-news">
+                        <span class="page-tag">◆ Publikasi</span>
+                        <h2 class="page-title">Kelola Berita.</h2>
+
+                        <div class="card" style="margin-bottom: 24px;">
+                            <h3 style="font-size: 13px; margin-bottom: 16px;" id="newsFormTitle">+ Tambah Berita</h3>
+                            <input type="hidden" id="newsEditRow" value="">
+                            <div class="form-grid-2">
+                                <div class="form-group"><label>Judul</label><input type="text" id="newsTitle" placeholder="Judul berita"></div>
+                                <div class="form-group"><label>Kategori</label><input type="text" id="newsCat" placeholder="Update / Event / Rilis"></div>
+                            </div>
+                            <div class="form-group"><label>URL Gambar</label><input type="url" id="newsImg" placeholder="https://..."></div>
+                            <div class="form-group"><label>Konten</label><textarea id="newsContent" rows="3" placeholder="Isi berita singkat"></textarea></div>
+                            <div class="btn-row">
+                                <button class="btn btn-accent" onclick="submitNews()" id="newsSubmitBtn">Publish Berita</button>
+                                <button class="btn btn-outline" onclick="resetNewsForm()" id="newsCancelBtn" style="display:none;">Batal Edit</button>
+                            </div>
+                        </div>
+
+                        <div id="newsList"><div class="loading-dot">Memuat data...</div></div>
+                    </section>
+
+                    <!-- ID CARD -->
+                    <section class="view" id="view-idcard">
+                        <span class="page-tag">◆ Member badge</span>
+                        <h2 class="page-title">Generate ID Card.</h2>
+
+                        <div class="idcard-wrap">
+                            <div class="select-wrap" style="width:100%; max-width:520px;">
+                                <select id="idcardMemberSelect" onchange="renderIdCard()">
+                                    <option value="">— Pilih member —</option>
+                                </select>
+                            </div>
+
+                            <canvas id="cardCanvas" width="1024" height="578"></canvas>
+
+                            <div class="btn-row">
+                                <button class="btn btn-accent" onclick="downloadCard()">Download PNG</button>
+                            </div>
+
+                            <p class="idcard-note">
+                                QR code di kartu ini mengarah ke teks <code>EINHEIT-VERIFY:&lt;ID member&gt;</code> —
+                                dibuat otomatis lewat layanan QR eksternal (qrserver.com), jadi hasilnya beneran bisa
+                                di-scan. Kalau tombol Download gagal (biasanya karena browser memblokir export gambar
+                                lintas-domain), klik kanan langsung di atas kartu lalu pilih "Save image as".
+                            </p>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+<script>
+    // =====================================================================
+    // KONFIGURASI — GANTI SEMUA INI SEBELUM DIPAKAI
+    // =====================================================================
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbz3BOaBDg0bsZ8czGV35K2JA0MJMK_GTto9KTA9i7WvyARc0lMy0f19_kKMcEhDyWfX/exec';
+
+    const ADMIN_USER = 'admin';              // ganti username kamu
+    const ADMIN_PASS = 'einheit2026';        // ganti password kamu
+    const ADMIN_TOKEN = 'GANTI_TOKEN_RAHASIA_INI_123'; // HARUS SAMA PERSIS dengan ADMIN_TOKEN di Code.gs
+
+    // =====================================================================
+    // AUTH
+    // =====================================================================
+    function handleLogin() {
+        const u = document.getElementById('loginUser').value.trim();
+        const p = document.getElementById('loginPass').value;
+        const err = document.getElementById('loginError');
+
+        if (u === ADMIN_USER && p === ADMIN_PASS) {
+            sessionStorage.setItem('einheit_admin_ok', '1');
+            err.style.display = 'none';
+            enterApp();
+        } else {
+            err.style.display = 'block';
+        }
+    }
+
+    function handleLogout() {
+        sessionStorage.removeItem('einheit_admin_ok');
+        location.reload();
+    }
+
+    function enterApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminApp').style.display = 'block';
+        verifyTokenThenLoad();
+    }
+
+    async function verifyTokenThenLoad() {
+        const banner = document.getElementById('tokenBanner');
+        try {
+            const r = await apiGet('adminPing');
+            if (!r.success) {
+                let detail = '';
+                if (r.debug) {
+                    detail = r.debug.token_dari_admin_html_kosong
+                        ? ' Token dari admin.html malah kosong/tidak terkirim — cek ada kesalahan ketik pada baris <code>const ADMIN_TOKEN</code>.'
+                        : ` Panjang token yang dikirim admin.html: <b>${r.debug.panjang_token_dari_admin_html}</b> karakter, panjang token di Code.gs: <b>${r.debug.panjang_token_di_code_gs}</b> karakter. Kalau angkanya beda, berarti isi ADMIN_TOKEN di kedua file belum benar-benar sama (cek spasi/kutip nyasar), atau Code.gs belum di-deploy ulang sebagai versi baru.`;
+                }
+                banner.innerHTML = `<b>⚠️ Token admin tidak cocok dengan Apps Script.</b>${detail} Semua data (Member, Pendaftar, Gallery, Berita) tidak akan muncul sampai ini benar.`;
+                banner.style.display = 'block';
+                showToast('Token tidak cocok — lihat keterangan di atas', true);
+            } else {
+                banner.style.display = 'none';
+            }
+        } catch (e) {
+            banner.innerHTML = `<b>⚠️ Gagal konek ke server.</b> Cek <code>scriptURL</code> sudah benar dan Apps Script sudah ter-deploy sebagai Web App dengan akses "Anyone".`;
+            banner.style.display = 'block';
+            showToast('Gagal konek ke server', true);
+        }
+        loadDashboard();
+    }
+
+    if (sessionStorage.getItem('einheit_admin_ok') === '1') {
+        window.addEventListener('DOMContentLoaded', enterApp);
+    }
+
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+    // =====================================================================
+    // API HELPERS
+    // =====================================================================
+    async function apiGet(action, params = {}) {
+        const q = new URLSearchParams({ action, token: ADMIN_TOKEN, ...params });
+        const r = await fetch(`${scriptURL}?${q.toString()}`);
+        return r.json();
+    }
+    async function apiPost(payload) {
+        const r = await fetch(scriptURL, { method: 'POST', body: JSON.stringify({ ...payload, token: ADMIN_TOKEN }) });
+        return r.json();
+    }
+
+    function showToast(msg, isErr = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast show' + (isErr ? ' err' : '');
+        setTimeout(() => { t.className = 'toast'; }, 3800);
+    }
+
+    // =====================================================================
+    // NAVIGATION
+    // =====================================================================
+    const viewTitles = { dashboard: 'Dashboard', members: 'Kelola Member', applications: 'Pendaftar Baru', gallery: 'Kelola Gallery', news: 'Kelola Berita', idcard: 'Generate ID Card' };
+    function showView(name) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + name).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+        document.getElementById('topbarTitle').textContent = viewTitles[name];
+        toggleSidebar(false);
+
+        if (name === 'dashboard') loadDashboard();
+        if (name === 'members') loadMembers();
+        if (name === 'applications') loadApplications();
+        if (name === 'gallery') loadGallery();
+        if (name === 'news') loadNews();
+        if (name === 'idcard') loadIdCardMembers();
+    }
+
+    function toggleSidebar(force) {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        const open = force !== undefined ? force : !sb.classList.contains('open');
+        sb.classList.toggle('open', open);
+        ov.classList.toggle('show', open);
+    }
+
+    // =====================================================================
+    // DASHBOARD
+    // =====================================================================
+    async function loadDashboard() {
+        const el = document.getElementById('dashStats');
+        try {
+            const [mem, app, gal, news] = await Promise.all([
+                apiGet('adminGetMembers'), apiGet('adminGetApplications'), apiGet('adminGetGallery'), apiGet('adminGetNews')
+            ]);
+            if (!mem.success || !app.success || !gal.success) {
+                const msg = mem.message || app.message || gal.message || 'Unauthorized';
+                el.innerHTML = `<div class="error-state" style="grid-column:1/-1;">${msg}</div>`;
+                return;
+            }
+            const pendingApps = (app.data || []).length;
+            const pendingGallery = (gal.data || []).filter(g => g.status !== 'Approved').length;
+            el.innerHTML = `
+                <div class="stat-card"><div class="num">${(mem.data||[]).length}</div><div class="lbl">TOTAL MEMBER</div></div>
+                <div class="stat-card"><div class="num">${pendingApps}</div><div class="lbl">PENDAFTAR PENDING</div></div>
+                <div class="stat-card"><div class="num">${pendingGallery}</div><div class="lbl">GALLERY PENDING</div></div>
+                <div class="stat-card"><div class="num">${(news.data||[]).length}</div><div class="lbl">TOTAL BERITA</div></div>
+            `;
+        } catch (e) {
+            el.innerHTML = `<div class="error-state" style="grid-column:1/-1;">Gagal konek ke server. Cek scriptURL.</div>`;
+        }
+    }
+
+    // =====================================================================
+    // MEMBERS
+    // =====================================================================
+    async function loadMembers() {
+        const el = document.getElementById('membersList');
+        el.innerHTML = `<div class="loading-dot">Memuat data...</div>`;
+        try {
+            const r = await apiGet('adminGetMembers');
+            if (!r.success) { el.innerHTML = `<div class="error-state">${r.message || 'Unauthorized'}</div>`; return; }
+            const data = r.data || [];
+            if (!data.length) { el.innerHTML = `<div class="empty-state">Belum ada member terdaftar.</div>`; return; }
+
+            el.innerHTML = data.map(m => `
+                <div class="list-item">
+                    <div class="li-row">
+                        <img class="li-avatar" src="${m.logo}" onerror="this.src='https://files.catbox.moe/cmhaot.jpg'">
+                        <div class="li-main">
+                            <div class="li-title">${m.brand || 'Unnamed'}</div>
+                            <div class="li-sub">${m.id} · ${m.owner}</div>
+                        </div>
+                    </div>
+                    <div class="stat-ctrls">
+                        <div class="stat-ctrl">
+                            <span class="lbl2">POWER</span>
+                            <button onclick="adjustStat('${m.id}','power',-10,this)">−</button>
+                            <span class="val" data-field="power">${m.power}</span>
+                            <button onclick="adjustStat('${m.id}','power',10,this)">+</button>
+                        </div>
+                        <div class="stat-ctrl">
+                            <span class="lbl2">DESIGN</span>
+                            <button onclick="adjustStat('${m.id}','design',-1,this)">−</button>
+                            <span class="val" data-field="design">${m.design}</span>
+                            <button onclick="adjustStat('${m.id}','design',1,this)">+</button>
+                        </div>
+                        <div class="stat-ctrl">
+                            <span class="lbl2">SPEC</span>
+                            <button onclick="adjustStat('${m.id}','spec',-1,this)">−</button>
+                            <span class="val" data-field="spec">${m.spec}</span>
+                            <button onclick="adjustStat('${m.id}','spec',1,this)">+</button>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-outline btn-sm" onclick="jumpToCard('${m.id}')">Generate ID Card</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.brand||'').replace(/'/g,"")}')">Hapus Member</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            el.innerHTML = `<div class="error-state">Gagal konek ke server.</div>`;
+        }
+    }
+
+    async function adjustStat(id, field, delta, btnEl) {
+        const wrap = btnEl.closest('.stat-ctrl');
+        const valEl = wrap.querySelector('.val');
+        const old = valEl.textContent;
+        valEl.textContent = '...';
+        try {
+            const r = await apiPost({ action: 'adminUpdateStat', id, field, delta });
+            if (r.success) { valEl.textContent = r.value; showToast(`${field} diperbarui`); }
+            else { valEl.textContent = old; showToast(r.message || 'Gagal update', true); }
+        } catch (e) { valEl.textContent = old; showToast('Gagal konek ke server', true); }
+    }
+
+    async function deleteMember(id, brand) {
+        if (!confirm(`Hapus member "${brand}" (${id})? Tindakan ini tidak bisa dibatalkan.`)) return;
+        try {
+            const r = await apiPost({ action: 'adminDeleteMember', id });
+            if (r.success) { showToast('Member dihapus.'); loadMembers(); }
+            else showToast(r.message || 'Gagal menghapus', true);
+        } catch (e) { showToast('Gagal konek ke server', true); }
+    }
+
+    function jumpToCard(id) {
+        showView('idcard');
+        setTimeout(() => {
+            const sel = document.getElementById('idcardMemberSelect');
+            sel.value = id;
+            renderIdCard();
+        }, 300);
+    }
+
+    // =====================================================================
+    // APPLICATIONS
+    // =====================================================================
+    async function loadApplications() {
+        const el = document.getElementById('applicationsList');
+        el.innerHTML = `<div class="loading-dot">Memuat data...</div>`;
+        try {
+            const r = await apiGet('adminGetApplications');
+            if (!r.success) { el.innerHTML = `<div class="error-state">${r.message || 'Unauthorized'}</div>`; return; }
+            const data = r.data || [];
+            if (!data.length) { el.innerHTML = `<div class="empty-state">Tidak ada pendaftar baru saat ini.</div>`; return; }
+
+            el.innerHTML = data.map(a => `
+                <div class="list-item">
+                    <div class="li-row">
+                        <img class="li-avatar" src="${a.logo}" onerror="this.src='https://files.catbox.moe/cmhaot.jpg'">
+                        <div class="li-main">
+                            <div class="li-title">${a.brand}</div>
+                            <div class="li-sub">${a.owner} · ${a.wa}</div>
+                        </div>
+                        <span class="badge pending">PENDING</span>
+                    </div>
+                    <p style="font-size:12.5px; color:var(--dim); line-height:1.6; margin:14px 0 0;">
+                        <strong style="color:var(--ink);">Fokus:</strong> ${a.focus} · <strong style="color:var(--ink);">Tipe:</strong> ${a.type}<br>
+                        <strong style="color:var(--ink);">Slogan:</strong> "${a.slogan}"<br>
+                        <strong style="color:var(--ink);">Deskripsi:</strong> ${a.desc}<br>
+                        <strong style="color:var(--ink);">TikTok:</strong> ${a.tiktok}<br>
+                        <strong style="color:var(--ink);">Alasan gabung:</strong> ${a.why}
+                    </p>
+                    <div class="btn-row">
+                        <button class="btn btn-accent btn-sm" onclick="approveApp('${a.appId}')">Approve</button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectApp('${a.appId}')">Tolak</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            el.innerHTML = `<div class="error-state">Gagal konek ke server.</div>`;
+        }
+    }
+
+    async function approveApp(appId) {
+        if (!confirm('Setujui pendaftar ini jadi member resmi?')) return;
+        try {
+            const r = await apiPost({ action: 'adminApproveApplication', appId });
+            if (r.success) { showToast(`Disetujui! ID baru: ${r.newId}`); loadApplications(); }
+            else showToast(r.message || 'Gagal approve', true);
+        } catch (e) { showToast('Gagal konek ke server', true); }
+    }
+
+    async function rejectApp(appId) {
+        if (!confirm('Tolak pendaftaran ini? Data akan dihapus permanen.')) return;
+        try {
+            const r = await apiPost({ action: 'adminRejectApplication', appId });
+            if (r.success) { showToast('Pendaftaran ditolak.'); loadApplications(); }
+            else showToast(r.message || 'Gagal menolak', true);
+        } catch (e) { showToast('Gagal konek ke server', true); }
+    }
+
+    // =====================================================================
+    // GALLERY
+    // =====================================================================
+    async function loadGallery() {
+        const el = document.getElementById('galleryList');
+        el.innerHTML = `<div class="loading-dot">Memuat data...</div>`;
+        try {
+            const r = await apiGet('adminGetGallery');
+            if (!r.success) { el.innerHTML = `<div class="error-state">${r.message || 'Unauthorized'}</div>`; return; }
+            const data = r.data || [];
+            if (!data.length) { el.innerHTML = `<div class="empty-state">Belum ada produk di gallery.</div>`; return; }
+
+            el.innerHTML = data.map(g => `
+                <div class="list-item">
+                    <div class="li-row">
+                        <img class="li-avatar" src="${g.img}" onerror="this.src='https://files.catbox.moe/cmhaot.jpg'">
+                        <div class="li-main">
+                            <div class="li-title">${g.name}</div>
+                            <div class="li-sub">SERIAL: ${g.serial}</div>
+                        </div>
+                        <span class="badge ${g.status === 'Approved' ? 'approved' : 'pending'}">${g.status.toUpperCase()}</span>
+                    </div>
+                    <div class="btn-row">
+                        ${g.status !== 'Approved' ? `<button class="btn btn-accent btn-sm" onclick="galleryAction(${g.row},'approve')">Approve</button>` : ''}
+                        <button class="btn btn-danger btn-sm" onclick="galleryAction(${g.row},'delete')">Hapus</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            el.innerHTML = `<div class="error-state">Gagal konek ke server.</div>`;
+        }
+    }
+
+    async function galleryAction(row, op) {
+        if (op === 'delete' && !confirm('Hapus item ini dari gallery?')) return;
+        try {
+            const r = await apiPost({ action: 'adminGalleryAction', row, op });
+            if (r.success) { showToast(op === 'approve' ? 'Produk disetujui.' : 'Produk dihapus.'); loadGallery(); }
+            else showToast(r.message || 'Gagal', true);
+        } catch (e) { showToast('Gagal konek ke server', true); }
+    }
+
+    // =====================================================================
+    // NEWS
+    // =====================================================================
+    async function loadNews() {
+        const el = document.getElementById('newsList');
+        el.innerHTML = `<div class="loading-dot">Memuat data...</div>`;
+        try {
+            const r = await apiGet('adminGetNews');
+            if (!r.success) { el.innerHTML = `<div class="error-state">${r.message || 'Unauthorized'}</div>`; return; }
+            const data = r.data || [];
+            if (!data.length) { el.innerHTML = `<div class="empty-state">Belum ada berita.</div>`; return; }
+
+            el.innerHTML = data.map(n => `
+                <div class="list-item">
+                    <div class="li-row">
+                        <img class="li-avatar" src="${n.img}" onerror="this.src='https://files.catbox.moe/cmhaot.jpg'">
+                        <div class="li-main">
+                            <div class="li-title">${n.title}</div>
+                            <div class="li-sub">${n.cat} · ${n.date}</div>
+                        </div>
+                    </div>
+                    <p style="font-size:12.5px; color:var(--dim); line-height:1.6; margin:14px 0 0;">${n.content}</p>
+                    <div class="btn-row">
+                        <button class="btn btn-outline btn-sm" onclick='editNews(${JSON.stringify(n)})'>Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteNews(${n.row})">Hapus</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            el.innerHTML = `<div class="error-state">Gagal konek ke server.</div>`;
+        }
+    }
+
+    function editNews(n) {
+        document.getElementById('newsEditRow').value = n.row;
+        document.getElementById('newsTitle').value = n.title;
+        document.getElementById('newsCat').value = n.cat;
+        document.getElementById('newsImg').value = n.img;
+        document.getElementById('newsContent').value = n.content;
+        document.getElementById('newsFormTitle').textContent = '✎ Edit Berita';
+        document.getElementById('newsSubmitBtn').textContent = 'Simpan Perubahan';
+        document.getElementById('newsCancelBtn').style.display = 'inline-flex';
+        document.getElementById('view-news').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetNewsForm() {
+        document.getElementById('newsEditRow').value = '';
+        document.getElementById('newsTitle').value = '';
+        document.getElementById('newsCat').value = '';
+        document.getElementById('newsImg').value = '';
+        document.getElementById('newsContent').value = '';
+        document.getElementById('newsFormTitle').textContent = '+ Tambah Berita';
+        document.getElementById('newsSubmitBtn').textContent = 'Publish Berita';
+        document.getElementById('newsCancelBtn').style.display = 'none';
+    }
+
+    async function submitNews() {
+        const row = document.getElementById('newsEditRow').value;
+        const title = document.getElementById('newsTitle').value.trim();
+        const cat = document.getElementById('newsCat').value.trim();
+        const img = document.getElementById('newsImg').value.trim();
+        const content = document.getElementById('newsContent').value.trim();
+        if (!title) { showToast('Judul wajib diisi', true); return; }
+
+        try {
+            const payload = row
+                ? { action: 'adminNewsUpdate', row: Number(row), title, cat, img, content }
+                : { action: 'adminNewsAdd', title, cat, img, content };
+            const r = await apiPost(payload);
+            if (r.success) { showToast(row ? 'Berita diperbarui.' : 'Berita dipublish.'); resetNewsForm(); loadNews(); }
+            else showToast(r.message || 'Gagal menyimpan', true);
+        } catch (e) { showToast('Gagal konek ke server', true); }
+    }
+
+    async function deleteNews(row) {
+        if (!confirm('Hapus berita ini?')) return;
+        try {
+            const r = await apiPost({ action: 'adminNewsDelete', row });
+            if (r.success) { showToast('Berita dihapus.'); loadNews(); }
+            else showToast(r.message || 'Gagal menghapus', true);
+        } catch (e) { showToast('Gagal konek ke server', true); }
+    }
+
+    // =====================================================================
+    // ID CARD GENERATOR — desain mengikuti referensi yang dikirim
+    // =====================================================================
+    let cachedMembers = [];
+
+    async function loadIdCardMembers() {
+        const sel = document.getElementById('idcardMemberSelect');
+        try {
+            const r = await apiGet('adminGetMembers');
+            if (!r.success) {
+                sel.innerHTML = `<option value="">— ${r.message || 'Unauthorized'} —</option>`;
+                return;
+            }
+            cachedMembers = r.data || [];
+            sel.innerHTML = '<option value="">— Pilih member —</option>' +
+                cachedMembers.map(m => `<option value="${m.id}">${m.brand} (${m.id})</option>`).join('');
+        } catch (e) {
+            showToast('Gagal memuat daftar member', true);
+        }
+    }
+
+    function renderIdCard() {
+        const id = document.getElementById('idcardMemberSelect').value;
+        const canvas = document.getElementById('cardCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const member = cachedMembers.find(m => m.id === id);
+        if (!member) { drawEmptyCard(ctx, canvas); return; }
+        drawCard(ctx, canvas, member);
+    }
+
+    function roundRectPath(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    function drawEmptyCard(ctx, canvas) {
+        const W = canvas.width, H = canvas.height;
+        ctx.fillStyle = '#000000';
+        roundRectPath(ctx, 0, 0, W, H, W * 0.045); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.font = '600 ' + Math.round(W * 0.024) + 'px Inter, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('Pilih member untuk melihat preview kartu', W / 2, H / 2);
+    }
+
+    // Baris teks besar 2 baris, ditumpuk dari BAWAH (biar nama 1 kata tetap
+    // nempel di baseline bawah seperti referensi, bukan nyangkut di atas)
+    function drawBottomUpText(ctx, text, x, bottomY, maxWidth, lineHeight, maxLines) {
+        const words = text.split(' ');
+        let line = '', lines = [];
+        for (let n = 0; n < words.length; n++) {
+            const test = line ? line + ' ' + words[n] : words[n];
+            if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = words[n]; }
+            else line = test;
+        }
+        lines.push(line);
+        lines = lines.slice(0, maxLines);
+        lines.forEach((l, i) => {
+            const y = bottomY - (lines.length - 1 - i) * lineHeight;
+            ctx.fillText(l, x, y);
+        });
+    }
+
+    // ============ DESAIN KARTU — mengikuti referensi yang dikirim ============
+    function drawCard(ctx, canvas, member) {
+        const W = canvas.width, H = canvas.height;
+        const r = W * 0.045;
+        const padX = W * 0.088;
+
+        // Background hitam + clip ke rounded-rect biar semua elemen di bawah kepotong rapi
+        ctx.save();
+        roundRectPath(ctx, 0, 0, W, H, r);
+        ctx.clip();
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, W, H);
+
+        // Glow "planet" diagonal dari pojok kanan bawah
+        const cx = W * 1.0, cy = H * 1.05;
+        const grad = ctx.createRadialGradient(cx, cy, W * 0.05, cx, cy, W * 0.95);
+        grad.addColorStop(0, 'rgba(130,130,130,0.30)');
+        grad.addColorStop(0.35, 'rgba(80,80,80,0.16)');
+        grad.addColorStop(0.62, 'rgba(35,35,35,0.07)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Garis horizon tipis (batas "planet")
+        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx.lineWidth = W * 0.002;
+        ctx.beginPath();
+        ctx.arc(cx, cy, W * 0.56, Math.PI * 1.08, Math.PI * 1.58);
+        ctx.stroke();
+
+        // Watermark besar transparan di tengah
+        ctx.font = '700 ' + Math.round(W * 0.086) + 'px "Space Grotesk", sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.045)';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('Einheit 单元', W / 2, H * 0.51);
+
+        // Wordmark pojok kiri atas
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = '#F5F5F0';
+        ctx.font = '600 ' + Math.round(W * 0.033) + 'px Inter, sans-serif';
+        ctx.fillText('Einheit 单元', padX, H * 0.155);
+
+        // Info block kanan atas: Status / Join Date / ID
+        const labelX = W * 0.685;
+        const colonX = labelX + W * 0.098;
+        const valueX = colonX + W * 0.018;
+        const rows = [
+            ['Status.', 'Verified Member'],
+            ['Join Date', member.join_date || '-'],
+            ['ID', member.id || '-']
+        ];
+        ctx.font = '500 ' + Math.round(W * 0.0148) + 'px Inter, sans-serif';
+        rows.forEach((row, i) => {
+            const y = H * 0.105 + i * (H * 0.0415);
+            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            ctx.fillText(row[0], labelX, y);
+            ctx.fillText(':', colonX, y);
+            ctx.fillStyle = 'rgba(255,255,255,0.92)';
+            ctx.fillText(row[1], valueX, y);
+        });
+
+        // Nama besar 2 baris, kiri bawah
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '700 ' + Math.round(W * 0.066) + 'px "Space Grotesk", sans-serif';
+        const nameText = (member.brand || member.owner || 'UNKNOWN MEMBER').toUpperCase();
+        drawBottomUpText(ctx, nameText, padX, H * 0.855, W * 0.55, H * 0.128, 2);
+
+        ctx.restore();
+
+        // QR code (async, ditempel setelah gambar kepanggil)
+        const qrSize = W * 0.161;
+        const qrX = W * 0.955 - qrSize;
+        const qrY = H * 0.657;
+        const qrData = encodeURIComponent(`EINHEIT-VERIFY:${member.id || ''}`);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=0&color=F0F2ED&bgcolor=000000&data=${qrData}`;
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            ctx.save();
+            roundRectPath(ctx, 0, 0, W, H, r);
+            ctx.clip();
+            ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+            ctx.restore();
+        };
+        img.onerror = () => {
+            // Fallback kalau layanan QR eksternal gagal dimuat (mis. offline)
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.font = (W * 0.011) + 'px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('QR gagal dimuat', qrX + qrSize / 2, qrY + qrSize / 2);
+            ctx.restore();
+        };
+        img.src = qrUrl;
+    }
+
+    function downloadCard() {
+        const id = document.getElementById('idcardMemberSelect').value;
+        if (!id) { showToast('Pilih member dulu', true); return; }
+        const canvas = document.getElementById('cardCanvas');
+        try {
+            const link = document.createElement('a');
+            link.download = `einheit-idcard-${id}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (e) {
+            showToast('Gagal export otomatis — klik kanan pada kartu > Save Image as.', true);
+        }
+    }
+</script>
+</body>
+</html>
