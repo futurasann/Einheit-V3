@@ -63,14 +63,18 @@
 
     /* STEP LAYOUT */
     .step {
-        position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-        padding: 120px 24px 80px; overflow-y: auto;
+        position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+        padding: 130px 24px 90px; overflow-y: auto;
         opacity: 0; visibility: hidden; transform: translateY(18px) scale(0.99); filter: blur(6px);
         transition: opacity 0.85s var(--ease), transform 0.85s var(--ease), filter 0.85s var(--ease), visibility 0.85s;
         z-index: 1;
     }
     .step.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); filter: blur(0); z-index: 2; pointer-events: auto; }
     .step:not(.active) { pointer-events: none; }
+    /* Semua wrapper konten di-center pakai margin:auto — kalau muat, benar-benar
+       di tengah; kalau kepanjangan, otomatis mulai dari atas & bisa discroll,
+       tidak terpotong. */
+    .welcome-wrap, .form-wrap, .success-wrap { margin: auto 0; }
 
     .frame-corners { position: fixed; inset: 20px; pointer-events: none; z-index: 400; opacity: 0; transition: opacity 1s var(--ease) 0.3s; }
     .frame-corners.show { opacity: 1; }
@@ -170,6 +174,14 @@
     .field-error { color: #e5e5e5; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.5px; margin-top: 10px; display: none; border-left: 2px solid var(--white); padding-left: 10px; }
     .field-error.show { display: block; }
 
+    /* Validasi custom — pengganti validasi bawaan browser yang tidak reliable
+       di dalam container fixed+scroll seperti ini */
+    .f-row.invalid .f-input, .f-row.invalid .f-textarea { border-bottom-color: var(--white); border-bottom-width: 2px; }
+    .f-row.invalid label { color: var(--ink); }
+    .f-row.invalid label .req { color: var(--ink); }
+    @keyframes shakeX { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+    .shake { animation: shakeX 0.4s var(--ease); }
+
     /* ============ STEP 3 — TERMS ============ */
     .terms-wrap { max-width: 620px; }
     .terms-body { border: 1px solid var(--line); border-radius: 14px; padding: 32px 30px; margin: 40px 0; max-height: 44vh; overflow-y: auto; }
@@ -188,10 +200,23 @@
 
     /* ============ STEP 4 — SUCCESS ============ */
     .success-wrap { max-width: 480px; text-align: center; }
-    .check-ring { width: 92px; height: 92px; border: 1.5px solid var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 40px; position: relative; }
-    .check-ring::before { content: ''; position: absolute; inset: -10px; border: 1px solid var(--line-thick); border-radius: 50%; animation: pulseRing 2.4s var(--ease) infinite; }
+    .check-ring { width: 92px; height: 92px; border: 1.5px solid var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 40px; position: relative; transform: scale(0.6); opacity: 0; }
+    .check-ring::before { content: ''; position: absolute; inset: -10px; border: 1px solid var(--line-thick); border-radius: 50%; opacity: 0; }
+    .check-ring.animate { animation: popIn 0.55s var(--ease) forwards; }
+    .check-ring.animate::before { animation: pulseRing 2.4s var(--ease) 0.6s infinite; }
+    @keyframes popIn { to { transform: scale(1); opacity: 1; } }
     @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.25); opacity: 0; } }
-    .check-ring svg { width: 34px; height: 34px; stroke: var(--white); stroke-width: 1.5; }
+    .check-ring svg { width: 34px; height: 34px; stroke: var(--white); stroke-width: 1.5; overflow: visible; }
+    .check-ring svg polyline { stroke-dasharray: 30; stroke-dashoffset: 30; }
+    .check-ring.animate svg polyline { animation: drawCheck 0.5s var(--ease) 0.4s forwards; }
+    @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+
+    .success-wrap h2, .success-wrap p, .success-wrap .ref-id, .success-wrap .btn-return { opacity: 0; transform: translateY(12px); }
+    .success-wrap.animate h2 { animation: fadeUpSm 0.6s var(--ease) 0.55s forwards; }
+    .success-wrap.animate p { animation: fadeUpSm 0.6s var(--ease) 0.7s forwards; }
+    .success-wrap.animate .ref-id { animation: fadeUpSm 0.6s var(--ease) 0.85s forwards; }
+    .success-wrap.animate .btn-return { animation: fadeUpSm 0.6s var(--ease) 1s forwards; }
+    @keyframes fadeUpSm { to { opacity: 1; transform: translateY(0); } }
 
     .success-wrap h2 { font-size: 34px; margin-bottom: 18px; }
     .success-wrap p { color: var(--dim); font-size: 14.5px; line-height: 1.85; margin-bottom: 44px; }
@@ -391,8 +416,8 @@
 
     <!-- ============ STEP 4 — SUCCESS ============ -->
     <section class="step" id="step4" data-step="4">
-        <div class="success-wrap">
-            <div class="check-ring">
+        <div class="success-wrap" id="successWrap">
+            <div class="check-ring" id="checkRing">
                 <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <h2>Application Received.</h2>
@@ -440,10 +465,54 @@
             steps[currentStep].classList.add('active');
             updateChrome();
             window.scrollTo({ top: 0, behavior: 'auto' });
+
+            if (idx === 4) {
+                const ring = document.getElementById('checkRing');
+                const wrap = document.getElementById('successWrap');
+                ring.classList.remove('animate');
+                wrap.classList.remove('animate');
+                void ring.offsetWidth; // force reflow supaya animasi bisa diulang tiap masuk step ini
+                ring.classList.add('animate');
+                wrap.classList.add('animate');
+            }
         }
 
         function goBack() {
             if (currentStep > 0 && currentStep < 4) goToStep(currentStep - 1);
+        }
+
+        // Validasi custom — TIDAK pakai form.reportValidity() bawaan browser,
+        // karena bubble validasinya tidak reliable di dalam section fixed+scroll
+        // seperti ini (itu penyebab tombol "Continue" kelihatan macet/diam).
+        function clearInvalid(id) {
+            const el = document.getElementById(id);
+            if (el) el.closest('.f-row').classList.remove('invalid');
+        }
+        document.querySelectorAll('.f-input, .f-textarea').forEach(el => {
+            el.addEventListener('input', () => el.closest('.f-row').classList.remove('invalid'));
+        });
+
+        function validateFields(ids) {
+            let firstInvalid = null;
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                const row = el.closest('.f-row');
+                if (!el.value.trim()) {
+                    row.classList.add('invalid');
+                    if (!firstInvalid) firstInvalid = el;
+                } else {
+                    row.classList.remove('invalid');
+                }
+            });
+            return firstInvalid;
+        }
+
+        function focusInvalid(el) {
+            const row = el.closest('.f-row');
+            row.classList.add('shake');
+            setTimeout(() => row.classList.remove('shake'), 400);
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => el.focus({ preventScroll: true }), 300);
         }
 
         function selectToggle(el, groupKey) {
@@ -460,19 +529,29 @@
         }
 
         function nextFromPersonal() {
-            const form = document.getElementById('personalForm');
-            if (!form.reportValidity()) return;
+            const ids = ['fullName', 'brandName', 'foundedDate', 'email', 'tiktok'];
+            const invalid = validateFields(ids);
+            if (invalid) { focusInvalid(invalid); return; }
+
+            const emailEl = document.getElementById('email');
+            if (!/^\S+@\S+\.\S+$/.test(emailEl.value.trim())) {
+                emailEl.closest('.f-row').classList.add('invalid');
+                focusInvalid(emailEl);
+                return;
+            }
+
             formData.fullName = document.getElementById('fullName').value.trim();
             formData.brandName = document.getElementById('brandName').value.trim();
-            formData.foundedDate = document.getElementById('foundedDate').value;
-            formData.email = document.getElementById('email').value.trim();
+            formData.foundedDate = document.getElementById('foundedDate').value.trim();
+            formData.email = emailEl.value.trim();
             formData.tiktok = document.getElementById('tiktok').value.trim();
             goToStep(2);
         }
 
         function nextFromQuestionnaire() {
-            const form = document.getElementById('questionnaireForm');
-            if (!form.reportValidity()) return;
+            const ids = ['whyJoin', 'deservingReason', 'flagshipDescription', 'modelsReleased', 'themeAesthetic'];
+            const invalid = validateFields(ids);
+            if (invalid) { focusInvalid(invalid); return; }
 
             if (!formData.previouslyJoined) {
                 document.getElementById('previouslyJoinedError').classList.add('show');
@@ -484,7 +563,7 @@
             formData.existingMemberId = document.getElementById('existingMemberId').value.trim();
             formData.deservingReason = document.getElementById('deservingReason').value.trim();
             formData.flagshipDescription = document.getElementById('flagshipDescription').value.trim();
-            formData.modelsReleased = document.getElementById('modelsReleased').value;
+            formData.modelsReleased = document.getElementById('modelsReleased').value.trim();
             formData.themeAesthetic = document.getElementById('themeAesthetic').value.trim();
             formData.portfolioLink = document.getElementById('portfolioLink').value.trim();
             formData.additionalNotes = document.getElementById('additionalNotes').value.trim();
